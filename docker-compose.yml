@@ -1,0 +1,22 @@
+version: "3.8"
+
+services:
+  api-diagnostic-prod:
+    build:
+      context: .
+      dockerfile: ./compose/prod/Dockerfile
+    image: <image name>
+    container_name: api-diagnostic-prod
+    ports:
+      - 9000:8080
+
+  api-diagnostic-dev:
+    build:
+      context: .
+      dockerfile: ./compose/dev/Dockerfile
+    image: api-diagnostic-dev:latest
+    container_name: api-diagnostic-dev
+    volumes:
+      - ./src:/usr/src/app/src
+    ports:
+      - 8000:8000
