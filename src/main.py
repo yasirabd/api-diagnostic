@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from mangum import Mangum
+from api_v1.api import router as api_router
+
 
 app = FastAPI(
     title="My Awesome FastAPI app",
@@ -7,10 +9,14 @@ app = FastAPI(
     version="0.1.0",
 )
 
+@app.get("/", name="root")
+async def root():
+    return {"message": "Hello World"}
 
 @app.get("/ping", name="Healthcheck", tags=["Healthcheck"])
 async def healthcheck():
     return {"Success": "Pong!"}
 
+app.include_router(api_router, prefix="/api/v1")
 
 handler = Mangum(app)
