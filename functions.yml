@@ -1,12 +1,12 @@
 functions:
   DiagnosticFunction:
-    image: 013565464067.dkr.ecr.ap-southeast-1.amazonaws.com/api-diagnostic@sha256:7bfc8f66c41a35de5f84efcdb1e0705855cbbad9bdb1fb5aa6ee02d87b5901e1
+    image: 013565464067.dkr.ecr.ap-southeast-1.amazonaws.com/api-diagnostic@sha256:794deba29c6d6fd13af49868c6f581583910b0f9ef567b9c818f74323b0592e0
     events:
       - http:
           path: ping/
           method: get
           cors: true
       - http:
-          path: api/v1/estimates/
+          path: api/v1/estimates
           method: any
           cors: true

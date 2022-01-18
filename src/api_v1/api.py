@@ -8,7 +8,7 @@ from api_v1.estimate.vbm import VBM
 
 router = APIRouter()
 
-@router.get("/estimates/")
+@router.get("/estimates")
 async def estimate_sensor(actual: float = 10., date: str = 'date', state_matrix: str = 'path'):
     # load state matrix
     path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'state_matrix.npy')
