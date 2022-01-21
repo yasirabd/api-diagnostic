@@ -36,6 +36,6 @@ async def estimate_sensor(sensors: List[str] =  Query(['Generator Gross Capacity
         residual_indication_positives.append(resid.residual_indication_positive)
         residual_indication_negatives.append(resid.residual_indication_negative)
 
-    return {"sensors": sensors, "estimates": list(estimates), "residuals": residuals, 
+    return {"sensors": sensors, "actuals": actuals, "estimates": list(estimates), "residuals": residuals, 
             "residual_indication_positive": residual_indication_positives, "residual_indication_negative": residual_indication_negatives,
             "state_matrix": state_matrix.shape}
