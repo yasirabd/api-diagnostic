@@ -3,8 +3,9 @@ import numpy as np
 
 
 class VBM:
-    def __init__(self):
-        pass
+    def __init__(self, actual_high, actual_low):
+        self.actual_high = actual_high
+        self.actual_low = actual_low
         
     def scipy_distance(self, vector1, vector2, dist='euclidean'):
         if dist == 'euclidean':
@@ -45,3 +46,25 @@ class VBM:
 
     def estimate_value(self, dynamic_matrix, weight):
         return np.dot(dynamic_matrix, weight.T)
+
+    def estimate_sensors(self, actuals, state_matrix):
+        result = []
+        # CHECK IF WE NEED TO UPDATE THE STATE MATRIX
+        for i in range(len(actuals)):
+            if actuals[i] > self.actual_low[i] and actuals[i] < self.actual_high[i]:
+                result.append(actuals[i])
+            else:
+                break
+        # update state_matrix if all of the sensors are normal
+        if len(result) == len(actuals):
+            temp = np.array(result).reshape(-1,1)
+            state_matrix = np.insert(state_matrix, [400], temp, axis=1)
+            state_matrix = state_matrix[:,1:]
+        
+        # CREATE DYNAMIC MATRIX
+        dm, w = self.create_dynamic_matrix(state_matrix, actuals)
+
+        # ESTIMATE DATA
+        x_est = np.array(self.estimate_value(dm, w))
+
+        return x_est, state_matrix
