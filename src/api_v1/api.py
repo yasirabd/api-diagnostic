@@ -1,3 +1,4 @@
+from functools import lru_cache
 import numpy as np
 from typing import List
 import os
@@ -5,21 +6,41 @@ import os
 from fastapi import APIRouter, Depends, Query, Body
 from api_v1.estimate.vbm import VBM
 from api_v1.residual.residual import Residual
+from api_v1.utils.s3_utils import S3
+import config
 
 
 router = APIRouter()
 
+@lru_cache()
+def get_settings():
+    return config.Settings()
+
 @router.get("/estimates")
-async def estimate_sensor(date: str = 'date', sensors: List[str] = Query(None), actuals: List[float] = Query(None)):
-    # load state matrix
-    path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'data6_state_matrix.npy')
-    state_matrix = np.load(path)
+async def estimate_sensor(date: str = 'date', sensors: List[str] = Query(None), actuals: List[float] = Query(None),
+                          settings: config.Settings = Depends(get_settings)):
+
+    # load state matrix from s3
+    s3 = S3(date=date, 
+            bucket_name=settings.AWS_S3_BUCKET_NAME,
+            access_key=settings.AWS_ACCESS_KEY_ID,
+            secret_key=settings.AWS_SECRET_ACCESS_KEY,
+            region_name=settings.AWS_REGION)
+    if s3.check_if_file_exists():
+        state_matrix = s3.load_state_matrix()
+    else:
+        # load the previous state matrix
+        state_matrix = s3.load_previous_state_matrix()
+        print(state_matrix.shape)
     
     # calculate reference data
     actual_low = [433., 41., 80., 1.48, 47.]
     actual_high = [610., 47., 87.18045, 1.54, 55.]
     vbm = VBM(actual_low, actual_high)
     estimates, state_matrix = vbm.estimate_sensors(actuals, state_matrix)
+
+    # update state matrix in s3
+    s3.upload_state_matrix(state_matrix)
 
     # calculate residual values
     residual_negative_treshold = [-177, -6, -7.180405, -0.06, -8]
