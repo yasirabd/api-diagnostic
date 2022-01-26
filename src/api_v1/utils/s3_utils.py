@@ -1,4 +1,4 @@
-import io, os, logging
+import io
 from urllib.parse import urlparse
 import numpy as np
 from datetime import timedelta, datetime

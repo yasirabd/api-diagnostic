@@ -1,7 +1,5 @@
 from functools import lru_cache
-import numpy as np
 from typing import List
-import os
 
 from fastapi import APIRouter, Depends, Query, Body
 from api_v1.estimate.vbm import VBM
