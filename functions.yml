@@ -1,6 +1,6 @@
 functions:
   DiagnosticFunction:
-    image: 013565464067.dkr.ecr.ap-southeast-1.amazonaws.com/api-diagnostic@sha256:c953f5efe724ae6ac2029071b7efd6f075549782bf40dbf291f26d6170c5561a
+    image: 013565464067.dkr.ecr.ap-southeast-1.amazonaws.com/api-diagnostic@sha256:9370be956554cd54d46c8225c96f58e2d00b5b3a532e40b14f6ffd6abc08f6ef
     events:
       - http:
           path: ping/
