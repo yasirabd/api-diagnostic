@@ -31,7 +31,6 @@ async def estimate_sensor(date: str = 'date', sensors: List[str] = Query(None), 
     else:
         # load the previous state matrix
         state_matrix = s3.load_previous_state_matrix()
-        print(state_matrix.shape)
     
     # calculate reference data
     actual_low = [433., 41., 80., 1.48, 47.]
