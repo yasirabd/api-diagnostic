@@ -6,7 +6,7 @@ from api_v1.estimate.vbm import VBM
 from api_v1.residual.residual import Residual
 from api_v1.utils.s3_utils import S3
 import config
-
+import os
 
 router = APIRouter()
 
@@ -17,12 +17,18 @@ def get_settings():
 @router.get("/estimates")
 async def estimate_sensor(date: str = 'date', sensors: List[str] = Query(None), actuals: List[float] = Query(None),
                           settings: config.Settings = Depends(get_settings)):
+    print(os.path.dirname(os.path.abspath(__file__)))
+    print(os.path.abspath(os.getcwd()))
+    print(os.listdir())
+    print(settings.AWS_ACCESS_KEY_ID)
+    print(settings.AWS_REGION)
 
     # load state matrix from s3
     s3 = S3(date=date, 
             bucket_name=settings.AWS_S3_BUCKET_NAME,
             access_key=settings.AWS_ACCESS_KEY_ID,
             secret_key=settings.AWS_SECRET_ACCESS_KEY,
+            session_token=settings.AWS_SESSION_TOKEN,
             region_name=settings.AWS_REGION)
     if s3.check_if_file_exists():
         state_matrix = s3.load_state_matrix()
