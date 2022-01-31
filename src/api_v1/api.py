@@ -5,8 +5,8 @@ from fastapi import APIRouter, Depends, Query, Body
 from api_v1.estimate.vbm import VBM
 from api_v1.residual.residual import Residual
 from api_v1.utils.s3_utils import S3
+from api_v1.database.db import DatabaseAnalytic
 import config
-import os
 
 router = APIRouter()
 
@@ -17,11 +17,6 @@ def get_settings():
 @router.get("/estimates")
 async def estimate_sensor(date: str = 'date', sensors: List[str] = Query(None), actuals: List[float] = Query(None),
                           settings: config.Settings = Depends(get_settings)):
-    print(os.path.dirname(os.path.abspath(__file__)))
-    print(os.path.abspath(os.getcwd()))
-    print(os.listdir())
-    print(settings.AWS_ACCESS_KEY_ID)
-    print(settings.AWS_REGION)
 
     # load state matrix from s3
     s3 = S3(date=date, 
@@ -36,9 +31,13 @@ async def estimate_sensor(date: str = 'date', sensors: List[str] = Query(None), 
         # load the previous state matrix
         state_matrix = s3.load_previous_state_matrix()
     
-    # calculate reference data
-    actual_low = [433., 41., 80., 1.48, 47.]
-    actual_high = [610., 47., 87.18045, 1.54, 55.]
+    # get actual thresholds from database
+    db = DatabaseAnalytic(database=settings.DB_DATABASE,
+                          user=settings.DB_USER,
+                          password=settings.DB_PASSWORD,
+                          host=settings.DB_HOST,
+                          port=settings.DB_PORT)
+    id_sensor, actual_low, actual_high = db.get_threshold_actual(sensors)
     vbm = VBM(actual_low, actual_high)
     estimates, state_matrix = vbm.estimate_sensors(actuals, state_matrix)
 
@@ -46,8 +45,7 @@ async def estimate_sensor(date: str = 'date', sensors: List[str] = Query(None), 
     s3.upload_state_matrix(state_matrix)
 
     # calculate residual values
-    residual_negative_treshold = [-177, -6, -7.180405, -0.06, -8]
-    residual_positive_treshold = [177, 6, 7.180405, 0.06, 8]
+    residual_negative_treshold, residual_positive_treshold = db.get_residual_threshold(id_sensor)
 
     residual_indication_positives = []
     residual_indication_negatives = []
