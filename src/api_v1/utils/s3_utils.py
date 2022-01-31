@@ -3,6 +3,7 @@ from urllib.parse import urlparse
 import numpy as np
 from datetime import timedelta, datetime
 import boto3
+from botocore.exceptions import ClientError
 
 
 class S3:
@@ -28,10 +29,12 @@ class S3:
         return path, filepath
 
     def check_if_file_exists(self):
-        s3 = self.client
-        path = self.filepath.rstrip('/')
-        resp = s3.list_objects(Bucket=self.bucket_name, Prefix=path, Delimiter='/',MaxKeys=1)
-        return 'CommonPrefixes' in resp
+        try:
+            s3 = self.client
+            s3.head_object(Bucket=self.bucket_name, Key=self.filepath)
+        except ClientError as e:
+            return int(e.response['Error']['Code']) != 404
+        return True
 
     def load_state_matrix(self, s3_uri=None):
         if not s3_uri: s3_uri = self.s3_uri
