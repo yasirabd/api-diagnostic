@@ -44,3 +44,21 @@ class DatabaseAnalytic(object):
 
         cursor.close()
         return residual_positive_threshold, residual_negative_threshold
+
+    def insert_to_runtime(self, values):
+        conn = self.conn
+        cursor = conn.cursor()
+        for row in values:
+            cursor.execute("""
+                INSERT INTO runtime (timestamp, sensor, actual, actual_smoothed, estimate, residual, residual_smoothed, residual_indication_positive, residual_indication_negative)
+                VALUES (%s, %s, %s, NULL, %s, %s, NULL, %s, %s);""", (
+                row[0],
+                row[1],
+                row[2],
+                row[4],
+                row[5],
+                row[7],
+                row[8],
+            ))
+        conn.commit()
+        cursor.close()

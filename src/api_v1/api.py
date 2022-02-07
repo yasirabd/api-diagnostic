@@ -1,5 +1,6 @@
 from functools import lru_cache
 from typing import List
+from datetime import datetime
 
 from fastapi import APIRouter, Depends, Query, Body
 from api_v1.estimate.vbm import VBM
@@ -55,7 +56,19 @@ async def estimate_sensor(date: str = 'date', sensors: List[str] = Query(None), 
         residuals.append(resid.residual)
         residual_indication_positives.append(resid.residual_indication_positive)
         residual_indication_negatives.append(resid.residual_indication_negative)
-
-    return {"sensors": sensors, "actuals": actuals, "estimates": list(estimates), "residuals": residuals, 
-            "residual_indication_positive": residual_indication_positives, "residual_indication_negative": residual_indication_negatives,
-            "state_matrix": state_matrix.shape}
+    
+    # structuring the output
+    timestamp = datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
+    values = []
+    for i in range(len(sensors)):
+        val = (date, id_sensor[i], actuals[i], None, estimates[i], residuals[i], None, residual_indication_positives[i], residual_indication_negatives[i])
+        values.append(val)
+    try:
+        # insert into table runtime
+        print(values)
+        db.insert_to_runtime(values)
+        return {"message": "success!",
+                "sensors": sensors, "actuals": actuals, "estimates": list(estimates), "residuals": residuals, 
+                "residual_indication_positive": residual_indication_positives, "residual_indication_negative": residual_indication_negatives,}
+    except:
+        return {"message": "insert failed!"}
